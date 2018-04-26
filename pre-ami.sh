@@ -42,12 +42,7 @@ apt-get install -y nfs-common  # For EFS
 a2enmod -q rewrite dir expires headers
 phpenmod mysqlnd pdo_mysql intl
 
-echo ======= Installing Postfix
-echo "postfix postfix/mailname string example.com" | debconf-set-selections
-echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections
-apt-get install -y mailutils
 echo ======= Cleanup Start
-
 df
 apt-get --purge -y remove software-properties-common
 apt-get -y autoclean
@@ -60,3 +55,11 @@ echo ======= Cleanup Done
 
 cp apache2.conf /etc/apache2
 
+echo ===========================
+echo === PRE-AMI is Complete ===
+echo ===========================
+
+echo Next is to shutdown and make the AMI
+echo
+echo systemctl poweroff
+echo

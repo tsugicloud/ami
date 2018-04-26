@@ -1,6 +1,16 @@
-echo "Running dev Startup"
+echo Running post-ami `date "+%F-%T"`
+touch /tmp/post-ami-`date "+%F-%T"`
 
-bash /usr/local/bin/tsugi-base-startup.sh return
+echo "====== Environment variables"
+env | sort
+
+apt-get update
+
+echo ======= Installing Postfix
+echo "postfix postfix/mailname string example.com" | debconf-set-selections
+echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections
+apt-get install -y mailutils
+
 
 # This might be a read-write volume from before
 if [ ! -d /var/www/html/tsugi/.git ]; then
@@ -30,15 +40,13 @@ if [ -n "$SETUP_GIT" ] ; then
   chmod a+s /usr/local/bin/gitx
 fi
 
-echo ""
-if [ "$@" == "return" ] ; then
-  echo "Tsugi Base Returning..."
-  exit
-fi
+echo ======= Cleanup Start
+df
+apt-get -y autoclean
+apt-get -y clean
+apt-get -y autoremove
+rm -rf /var/lib/apt/lists/*
+echo ======= Cleanup Done
+df
+echo ======= Cleanup Done
 
-exec bash /usr/local/bin/monitor-apache.sh
-
-# Should never happen
-# https://stackoverflow.com/questions/2935183/bash-infinite-sleep-infinite-blocking
-echo "Tsugi Base Sleeping forever..."
-while :; do sleep 2073600; done

@@ -20,6 +20,16 @@ Making the pre-AMI instance
     cloudflare-sg
     ssh,http,httpd all
 
+Log in and
+
+    sudo bash
+    git clone https://github.com/tsugicloud/ami.git
+    cd ami
+    bash pre-ami.sh
+    systemctl poweroff
+
+Make the AMI in AWS console
+
 About EFS and /etc/fstab
 
 https://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html
