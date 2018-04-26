@@ -7,10 +7,12 @@ env | sort
 apt-get update
 
 echo ======= Installing Postfix
-echo "postfix postfix/mailname string example.com" | debconf-set-selections
+echo "postfix postfix/mailname string ${TSUGI_MAIL_DOMAIN}" | debconf-set-selections
 echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections
 apt-get install -y mailutils
 
+echo "Finish the rest manually"
+exit
 
 # This might be a read-write volume from before
 if [ ! -d /var/www/html/tsugi/.git ]; then
