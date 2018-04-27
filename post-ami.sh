@@ -41,12 +41,31 @@ if [ ! -d /efs ]; then
     exit 1
 fi
 
-if [ -n "$TSUGI_FRESH_EFS" ] ; then
-    echo Clearing out /efs
-    echo File count: `du -a | wc -l`
-    rm -rf /efs/*
+echo Checking if there already is a git and is it good
+if [ -d /efs/html ] ; then
+  if [ -d /efs/html/tsugi ] ; then
+    if [ ! git status /efs/html/tsugi ] ; then
+      echo git status failed on /efs/html/tsugi
+      export TSUGI_FRESH_EFS=yes
+    fi
+  else
+    echo /efs/html/tsugi does not exist
+    export TSUGI_FRESH_EFS=yes
+  fi
+  if [ ! git status /efs/html ] ; then
+    echo git status failed on /efs/html
+    export TSUGI_FRESH_EFS=yes
+  fi
+fi
+
+if [[ -f /efs/html && -n "$TSUGI_FRESH_EFS" ]] ; then
+    echo Clearing out /efs/html
+    echo File count: `du -a /efs/html | wc -l`
+    rm -rf /efs/html
     echo /efs cleared.
 fi
+
+
 
 if [ ! -d /efs/blobs ]; then
   mkdir /efs/blobs
