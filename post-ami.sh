@@ -7,7 +7,7 @@ echo "====== Environment variables"
 env | sort
 
 cat << EOF >> /home/ubuntu/.bashrc
-PS1="\e[0;32m{$TSUGI_SERVICENAME}:\e[m\e[0;34m\w\e[m$ "
+PS1="\e[0;32m${TSUGI_SERVICENAME}:\e[m\e[0;34m\w\e[m$ "
 EOF
 
 apt-get update
@@ -119,6 +119,9 @@ rm -rf /var/lib/apt/lists/*
 echo ======= Cleanup Done
 df
 echo ======= Cleanup Done
+
+echo Setting Apache to auto-start on reboot
+update-rc.d apache2 defaults
 
 echo Starting Apache
 /usr/sbin/apachectl start
