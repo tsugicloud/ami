@@ -7,7 +7,12 @@ echo "====== Environment variables"
 env | sort
 
 cat << EOF >> /home/ubuntu/.bashrc
+if [ "\$EUID" -ne 0 ]
+then
 PS1="\e[0;32m${TSUGI_SERVICENAME}:\e[m\e[0;34m\w\e[m$ "
+else
+PS1="\e[0;31m${TSUGI_SERVICENAME}:\e[m\e[0;34m\w\e[m# "
+fi
 EOF
 
 apt-get update
