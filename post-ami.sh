@@ -1,6 +1,8 @@
 echo Running post-ami `date "+%F-%T"`
 touch /tmp/post-ami-`date "+%F-%T"`
 
+# source /home/ubuntu/tsugi_env.sh
+
 echo "====== Environment variables"
 env | sort
 
@@ -14,7 +16,7 @@ apt-get install -y mailutils
 if [ ! -d /efs ]; then
     echo ====== Setting up the efs volume
     mkdir /efs
-    mount mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $TSUGI_NFS_VOLUME:/ /efs
+    mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $TSUGI_NFS_VOLUME:/ /efs
     if grep --quiet /efs /etc/fstab ; then
         echo Fstab already has efs mount
     else
@@ -30,8 +32,12 @@ if [ ! -d /efs ]; then
     exit 1
 fi
 
-if [ ! -d /efs/blobs ]; then ; mkdir /efs/blobs ; fi
-if [ ! -d /efs/html ]; then ; mkdir /efs/html ; fi
+if [ ! -d /efs/blobs ]; then
+  mkdir /efs/blobs
+fi
+if [ ! -d /efs/html ]; then
+  mkdir /efs/html
+fi
 
 echo "Patching efs permissions"
 chown -R www-data:www-data /efs
@@ -61,18 +67,18 @@ if [ ! -d /efs/html/tsugi/.git ]; then
   git pull
 fi
 
+# Sanity Check
+if [[ -f /efs/html/tsugi/admin/upgrade.php ]] ; then
+  echo Tsugi checkout looks good
+else
+  echo Tsugi checkout fail
+  exit 1
+fi
+
 # Fix the config.php file
 if [ ! -f /efs/html/tsugi/config.php ] ; then
     echo Building config.php
     php /home/ubuntu/ami/fixconfig.php < /home/ubuntu/ami/config.php > /efs/html/tsugi/config.php
-fi
-
-# Sanity Check
-if [[ -f /efs/html/tsugi/config.php && -f /efs/html/tsugi/admin/upgrade.php ]] ; then
-  echo File check passed
-else
-  echo Missing essential files
-  exit 1
 fi
 
 echo Copying to /var/www/html
@@ -109,4 +115,7 @@ rm -rf /var/lib/apt/lists/*
 echo ======= Cleanup Done
 df
 echo ======= Cleanup Done
+
+echo Starting Apache
+/usr/sbin/apachectl start
 
