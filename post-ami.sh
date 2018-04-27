@@ -15,15 +15,30 @@ if [ ! -d /efs ]; then
     echo ====== Setting up the efs volume
     mkdir /efs
     mount mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $TSUGI_NFS_VOLUME:/ /efs
+    if grep --quiet /efs /etc/fstab ; then
+        echo Fstab already has efs mount
+    else
+        echo Adding efs mount to /etc/fstab
+        cat << EOF >> /etc/fstab
+$TSUGI_NFS_VOLUME:/ /efs nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev,noresvport 0 0
+EOF
+    fi
 fi
 
-echo "Finish the rest manually"
-exit
+if [ ! -d /efs ]; then
+    echo Failed to mount /efs - execution terminated
+    exit 1
+fi
 
+if [ ! -d /efs/blobs ]; then ; mkdir /efs/blobs ; fi
+if [ ! -d /efs/html ]; then ; mkdir /efs/html ; fi
 
-# This might be a read-write volume from before
-if [ ! -d /var/www/html/tsugi/.git ]; then
-  cd /var/www/html/
+echo "Patching efs permissions"
+chown -R www-data:www-data /efs
+
+# If we are making a fresh install
+if [ ! -d /efs/html/tsugi/.git ]; then
+  cd /efs/html/
   if [ -n "$MAIN_REPO" ] ; then
     echo Cloning $MAIN_REPO
     git clone $MAIN_REPO site
@@ -36,16 +51,34 @@ if [ ! -d /var/www/html/tsugi/.git ]; then
   cd ..
   rm -r site
 
-  cd /var/www/html/
+  cd /efs/html/
   git clone https://github.com/tsugiproject/tsugi.git
 
   # Make sure FETCH_HEAD and ORIG_HEAD are created
-  cd /var/www/html/tsugi
+  cd /efs/html
   git pull
-
+  cd /efs/html/tsugi
+  git pull
 fi
 
-# Create/update the tables
+# Fix the config.php file
+if [ ! -f /efs/html/tsugi/config.php ] ; then
+    echo Building config.php
+    php /home/ubuntu/ami/fixconfig.php < /home/ubuntu/ami/config.php > /efs/html/tsugi/config.php
+fi
+
+# Sanity Check
+if [[ -f /efs/html/tsugi/config.php && -f /efs/html/tsugi/admin/upgrade.php ]] ; then
+  echo File check passed
+else
+  echo Missing essential files
+  exit 1
+fi
+
+echo Copying to /var/www/html
+rsync -avh /efs/html/ /var/www/html/ --delete
+
+# Create/update the Tsug database tables
 cd /var/www/html/tsugi/admin
 php upgrade.php
 
@@ -53,18 +86,13 @@ php upgrade.php
 cp /usr/bin/git /usr/local/bin/gitx
 chown www-data:www-data /usr/local/bin/gitx
 chmod a+s /usr/local/bin/gitx
-chown -R www-data:www-data /var/www/html/tsugi
 
-mv /var/www/html/config.php /var/www/html/tsugi
+# Patch permissions
+chown -R www-data:www-data /var/www/html/tsugi
 
 # Create the tables
 cd /var/www/html/tsugi/admin
 php upgrade.php
-
-
-cp /usr/bin/git /usr/local/bin/gitx
-chown www-data:www-data /usr/local/bin/gitx
-chown -R www-data:www-data /var/www/html/tsugi
 
 # Make git work from the browser
 if [ -n "$SETUP_GIT" ] ; then

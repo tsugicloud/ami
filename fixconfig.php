@@ -1,6 +1,8 @@
 <?php
 
-$old = file_get_contents('config.php');
+// php fixconfig.php < config.php
+
+$old = file_get_contents("php://stdin");
 
 $new = preg_replace_callback(
     '|getenv\(\'([^\']*)\'\)|',
