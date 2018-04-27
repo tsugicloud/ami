@@ -6,6 +6,10 @@ touch /tmp/post-ami-`date "+%F-%T"`
 echo "====== Environment variables"
 env | sort
 
+cat << EOF >> /home/ubuntu/.bashrc
+PS1="\e[0;32m{$TSUGI_SERVICENAME}:\e[m\e[0;34m\w\e[m$ "
+EOF
+
 apt-get update
 
 echo ======= Installing Postfix
