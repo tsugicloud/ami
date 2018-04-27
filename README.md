@@ -30,6 +30,13 @@ Log in and
 
 Make the AMI in AWS console
 
+Make a new instance from the AMI
+
+Put in the user data under Advanced
+
+    /var/log/cloud-init-output.log
+
+
 About EFS and /etc/fstab
 
 https://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html
