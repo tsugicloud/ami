@@ -41,6 +41,13 @@ if [ ! -d /efs ]; then
     exit 1
 fi
 
+if [ -n "$TSUGI_FRESH_EFS" ] ; then
+    echo Clearing out /efs
+    echo File count: `du -a | wc -l`
+    rm -rf /efs/*
+    echo /efs cleared.
+fi
+
 if [ ! -d /efs/blobs ]; then
   mkdir /efs/blobs
 fi
@@ -69,11 +76,6 @@ if [ ! -d /efs/html/tsugi/.git ]; then
   cd /efs/html/
   git clone https://github.com/tsugiproject/tsugi.git
 
-  # Make sure FETCH_HEAD and ORIG_HEAD are created
-  cd /efs/html
-  git pull
-  cd /efs/html/tsugi
-  git pull
 fi
 
 # Sanity Check
@@ -83,6 +85,12 @@ else
   echo Tsugi checkout fail
   exit 1
 fi
+
+# Make sure FETCH_HEAD and ORIG_HEAD are created
+cd /efs/html
+git pull
+cd /efs/html/tsugi
+git pull
 
 # Fix the config.php file
 if [ ! -f /efs/html/tsugi/config.php ] ; then
