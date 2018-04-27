@@ -95,7 +95,7 @@ cd /var/www/html/tsugi/admin
 php upgrade.php
 
 # Make git work from the browser
-if [ -n "$SETUP_GIT" ] ; then
+if [ -n "$TSUGI_SETUP_GIT" ] ; then
   echo "Enabling git from the browser"
   chmod a+s /usr/local/bin/gitx
 fi
