@@ -88,7 +88,7 @@ fi
 echo Copying to /var/www/html
 rsync -avh /efs/html/ /var/www/html/ --delete
 
-# Create/update the Tsug database tables
+# Create/update the Tsugi database tables
 cd /var/www/html/tsugi/admin
 php upgrade.php
 
@@ -119,6 +119,17 @@ rm -rf /var/lib/apt/lists/*
 echo ======= Cleanup Done
 df
 echo ======= Cleanup Done
+
+# Setup Cron
+# https://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job
+
+cp /home/ubuntu/ami/cron.sh /home/ubuntu/cron.sh
+chown ubuntu:ubuntu /home/ubuntu/cron.sh
+chmod 664 /home/ubuntu/cron.sh
+
+cp /home/ubuntu/ami/crontab.txt /var/spool/cron/crontabs/ubuntu
+chown ubuntu:ubuntu /var/spool/cron/crontabs/ubuntu
+chmod 600 /var/spool/cron/crontabs/ubuntu
 
 echo Setting Apache to auto-start on reboot
 update-rc.d apache2 defaults
