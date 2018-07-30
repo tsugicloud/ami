@@ -63,6 +63,14 @@ mv .git* * ..
 cd ..
 rm -r site
 
+# Sanity Check
+if [[ -d /var/www/html/.git ]] ; then
+  echo Main site checkout looks good
+else
+  echo Main site checkout fail
+  exit 1
+fi
+
 cd /var/www/html/
 git clone https://github.com/tsugiproject/tsugi.git
 

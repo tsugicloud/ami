@@ -3,21 +3,15 @@
 echo "I am Cron Cron I Am"
 date
 
-echo ===== Updating main web site 
 cd /var/www/html
 git pull
 
-echo ===== Updating /tsugi
-cd /var/www/html/tsugi
-git pull
+# Install any needed tools if we are second to the cluster
+sudo su -s "/home/ubuntu/ami-sql/tool_update.sh" www-data
 
-echo ==== tsugicloud Database upgrade
-sleep 2
-cd /var/www/html/tsugi/admin
-php upgrade.php
+# Wait some random time so we don't all hit at once
+sleep $[ ( $RANDOM % 60 ) + 1 ]s
 
-echo ==== Tool pull
-sleep 2
-cd /var/www/html/tsugi/admin/install
-php update.php
+# Create/update the Tsugi database tables
+sudo su -s "/home/ubuntu/ami-sql/db_upgrade.sh" www-data
 

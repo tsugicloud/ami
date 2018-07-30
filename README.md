@@ -34,6 +34,9 @@ Make a new instance from the AMI
 
 Put in the user data under Advanced
 
+
+After the new instance comes up you can look at the trail at:
+
     /var/log/cloud-init-output.log
 
 
