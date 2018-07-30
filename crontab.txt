@@ -26,6 +26,6 @@ MAILTO=""
 # 10,30,50 * * * * sh checkerrors.sh >> /tmp/ubuntu.cron.test
 
 # 0 * * * * bash -vx /home/ubuntu/cron.sh 2>&1 > /tmp/phpintro_cron_output.log
-5,10,15,20,25,30,35,40,45,50 * * * * bash -vx /home/ubuntu/cron.sh 2>&1 > /tmp/phpintro_cron_output.log
+5,10,15,20,25,30,35,40,45,50 * * * * bash -vx /home/ubuntu/cron.sh 2>&1 > /tmp/tsugi_cron5_output.log
 
 
