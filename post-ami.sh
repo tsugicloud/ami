@@ -41,64 +41,33 @@ if [ ! -d /efs ]; then
     exit 1
 fi
 
-echo Checking if there already is a git and is it good
-if [ -d /efs/html ] ; then
-  if [ -d /efs/html/tsugi ] ; then
-    if [ ! git status /efs/html/tsugi ] ; then
-      echo git status failed on /efs/html/tsugi
-      export TSUGI_FRESH_EFS=yes
-    fi
-  else
-    echo /efs/html/tsugi does not exist
-    export TSUGI_FRESH_EFS=yes
-  fi
-  if [ ! git status /efs/html ] ; then
-    echo git status failed on /efs/html
-    export TSUGI_FRESH_EFS=yes
-  fi
-fi
-
-if [[ -f /efs/html && -n "$TSUGI_FRESH_EFS" ]] ; then
-    echo Clearing out /efs/html
-    echo File count: `du -a /efs/html | wc -l`
-    rm -rf /efs/html
-    echo /efs cleared.
-fi
-
-
 
 if [ ! -d /efs/blobs ]; then
   mkdir /efs/blobs
-fi
-if [ ! -d /efs/html ]; then
-  mkdir /efs/html
 fi
 
 echo "Patching efs permissions"
 chown -R www-data:www-data /efs
 
-# If we are making a fresh install
-if [ ! -d /efs/html/tsugi/.git ]; then
-  cd /efs/html/
-  if [ -n "$MAIN_REPO" ] ; then
-    echo Cloning $MAIN_REPO
-    git clone $MAIN_REPO site
-  else
-    echo Cloning default repo
-    git clone https://github.com/tsugicloud/dev-jekyll-site.git site
-  fi
-  cd site
-  mv .git* * ..
-  cd ..
-  rm -r site
-
-  cd /efs/html/
-  git clone https://github.com/tsugiproject/tsugi.git
-
+# Construct the web
+cd /var/www/html/
+if [ -n "$MAIN_REPO" ] ; then
+  echo Cloning $MAIN_REPO
+  git clone $MAIN_REPO site
+else
+  echo Cloning default repo
+  git clone https://github.com/tsugicloud/dev-jekyll-site.git site
 fi
+cd site
+mv .git* * ..
+cd ..
+rm -r site
+
+cd /var/www/html/
+git clone https://github.com/tsugiproject/tsugi.git
 
 # Sanity Check
-if [[ -f /efs/html/tsugi/admin/upgrade.php ]] ; then
+if [[ -f /var/www/html/tsugi/admin/upgrade.php ]] ; then
   echo Tsugi checkout looks good
 else
   echo Tsugi checkout fail
@@ -106,19 +75,16 @@ else
 fi
 
 # Make sure FETCH_HEAD and ORIG_HEAD are created
-cd /efs/html
+cd /var/www/html
 git pull
-cd /efs/html/tsugi
+cd /var/www/html/tsugi
 git pull
 
 # Fix the config.php file
-if [ ! -f /efs/html/tsugi/config.php ] ; then
+if [ ! -f /var/www/html/tsugi/config.php ] ; then
     echo Building config.php
     php /home/ubuntu/ami/fixconfig.php < /home/ubuntu/ami/config.php > /efs/html/tsugi/config.php
 fi
-
-echo Copying to /var/www/html
-rsync -avh /efs/html/ /var/www/html/ --delete
 
 # Create/update the Tsugi database tables
 cd /var/www/html/tsugi/admin
@@ -129,8 +95,12 @@ cp /usr/bin/git /usr/local/bin/gitx
 chown www-data:www-data /usr/local/bin/gitx
 chmod a+s /usr/local/bin/gitx
 
+# Checkout necessary mods
+cd /var/www/html/tsugi/admin/install
+php update.php
+
 # Patch permissions
-chown -R www-data:www-data /var/www/html/tsugi
+chown -R www-data:www-data /var/www/html
 
 # Create the tables
 cd /var/www/html/tsugi/admin
